@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\ArticleRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ArticleRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 #[ORM\HasLifecycleCallbacks] // Gestion auto des evenements par Doctrine
@@ -17,19 +18,27 @@ class Article
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 100)]
+    #[Assert\NotBlank(message: 'Le titre est obligatire')]
+    #[Assert\Length(min: 2, max: 100, message : 'Le titre doit faire entre {{ min }} et {{ max }} caractères')]
+    #[Assert\Length(max: 255, message : '{{ max }} caractères maximum')]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Length(max: 255, message : '{{ max }} caractères maximum')]
+    #[Assert\Regex(pattern: '^[a-z0-9-]+$')]
     private ?string $slug = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $image = null;
+    #[Assert\Length(max: 255, message : ' {{ max }} caractères maximum')]
+    #[Assert\Regex(pattern: '\.(jpg|jpeg|png|webp)$')]
+    private ?string $image = 'default.jpg';
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255, message : ' {{ max }} caractères maximum')]
     private ?string $keywords = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Assert\Length(max: 255, message : ' {{ max }} caractères maximum')]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -73,16 +82,16 @@ class Article
      * La mise à jour de la date de création et de la date de modification de l'entité
      */
     #[ORM\PrePersist] // Premier enregistrement d'un objet de l'entité
-    public function setCreatedAtValue(\DateTimeImmutable $created_at): void
+    public function setCreatedAtValue(): void
     {
-        $this->created_at = $created_at;
-        $this->setUpdatedAtValue($created_at);
+        $this->created_at = new \DateTimeImmutable();
+        $this->updated_at = new \DateTimeImmutable();
     }
 
     #[ORM\PreUpdate] // Modification d'un objet de l'entité
-    public function setUpdatedAtValue(\DateTimeImmutable $updated_at): void
+    public function setUpdatedAtValue(): void
     {
-        $this->updated_at = $updated_at;
+        $this->updated_at = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
