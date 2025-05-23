@@ -19,7 +19,7 @@ class UserFixtures extends Fixture
                 ->setEmail($faker->email())
                 ->setPassword($faker->password())
                 ->setWarningCount($faker->randomElement([0, 1, 2, 3]))
-                ->setIsBannied($faker->boolean(80))
+                ->setIsBanned($faker->boolean(80))
                 ->setIsActive($faker->boolean(10))
                 ->setCreatedAt(new \DateTimeImmutable())
                 ->setUpdatedAt(new \DateTimeImmutable())

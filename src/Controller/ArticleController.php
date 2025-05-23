@@ -46,10 +46,9 @@ final class ArticleController extends AbstractController
     }
     // Route "/article/{slug}" menent à la page d'un article
     #[Route('/{slug}', name: 'article', methods: ['GET'])]
-    public function view(): Response
-    {
+    public function view(string $slug): Response {
         return $this->render('article/view.html.twig', [
-            //'articles' => $article
+            'article' => $this->ar->findOneBySlug($slug),
         ]);
     }
 
