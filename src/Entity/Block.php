@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: BlockRepository::class)]
+#[ORM\HasLifecycleCallbacks] // Gestion auto des évènements par Doctrine
 class Block
 {
     #[ORM\Id]
@@ -15,7 +16,7 @@ class Block
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 80)]
     private ?string $name = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -36,6 +37,22 @@ class Block
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+    }
+        /**
+     * Les évènements du cycle de vie de l'entité
+     * La mise à jour des dates de création et de modification de l'entité
+     */
+    #[ORM\PrePersist] // Premier enregistrement d'un objet de l'entité
+    public function setCreatedAtValue(): void
+    {
+        $this->created_at = new \DateTimeImmutable();
+        $this->updated_at = new \DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate] // Modification d'un objet de l'entité
+    public function setUpdatedAtValue(): void
+    {
+        $this->updated_at = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
