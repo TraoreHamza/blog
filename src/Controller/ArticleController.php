@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\ArticleRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,17 +12,26 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class ArticleController extends AbstractController
 {
-    #[Route('/list', name: 'article', methods: ['GET'])]
+    /**
+     * Le constructeur permet de déclarer les dépendances une fois 
+     * et d'éviter la non-application du concept DRY (Don't Repeat Yourself)
+     */
+    public function __construct(
+        private ArticleRepository $ar, // Repository de l'entité Article
+        private EntityManagerInterface $em // Gestionnaire d'entité avec Doctrine
+    ){}
+    
+    // Route "/article" menent à la liste des articles
+    #[Route('s', name: 'article', methods: ['GET'])]
     public function index(
-        ArticleRepository $ar, // Repository de l'entité Article
         PaginatorInterface $paginator, // Classe pour la fonctionnalité de pagination
         Request $request // Classe epour recuperer les parametres de la requete HTTP
     ): Response {
         // Récupération de tous les articles
-        $all = $ar->findBy([
+        $all = $this->ar->findBy([
             'isPublished' => true, // On ne veut que les articles publiés
             'isArchived' => false// On ne veut pas les articles archivés
-        ], ['title' => 'ASC'],);
+        ], ['id' => 'DESC'],);
         $pagination = $paginator->paginate(
             $all,
             $request->query->getInt('page', 1),
