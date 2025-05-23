@@ -3,9 +3,11 @@
 namespace App\Entity;
 
 use App\Repository\CommentRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CommentRepository::class)]
+#[ORM\HasLifecycleCallbacks] // Gestion auto des évènements par Doctrine
 class Comment
 {
     #[ORM\Id]
@@ -13,11 +15,18 @@ class Comment
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\ManyToOne(inversedBy: 'comments')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $author = null;
+
+    #[ORM\Column(type: Types::TEXT)]
     private ?string $content = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $moderated_at = null;
+    private ?\DateTimeImmutable $created_at = null;
+
+    #[ORM\Column]
+    private ?bool $is_moderated = null;
 
     #[ORM\Column]
     private ?bool $is_published = null;
@@ -26,13 +35,31 @@ class Comment
     #[ORM\JoinColumn(nullable: false)]
     private ?Article $article = null;
 
-    #[ORM\ManyToOne(inversedBy: 'comments')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $author = null;
+    /**
+     * Les évènements du cycle de vie de l'entité
+     * La mise à jour des dates de création de l'entité
+     */
+    #[ORM\PrePersist] // Premier enregistrement d'un objet de l'entité
+    public function setCreatedAtValue(): void
+    {
+        $this->created_at = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): static
+    {
+        $this->author = $author;
+
+        return $this;
     }
 
     public function getContent(): ?string
@@ -47,14 +74,26 @@ class Comment
         return $this;
     }
 
-    public function getModeratedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->moderated_at;
+        return $this->created_at;
     }
 
-    public function setModeratedAt(\DateTimeImmutable $moderated_at): static
+    public function setCreatedAt(\DateTimeImmutable $created_at): static
     {
-        $this->moderated_at = $moderated_at;
+        $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function isModerated(): ?bool
+    {
+        return $this->is_moderated;
+    }
+
+    public function setIsModerated(bool $is_moderated): static
+    {
+        $this->is_moderated = $is_moderated;
 
         return $this;
     }
@@ -79,18 +118,6 @@ class Comment
     public function setArticle(?Article $article): static
     {
         $this->article = $article;
-
-        return $this;
-    }
-
-    public function getAuthor(): ?User
-    {
-        return $this->author;
-    }
-
-    public function setAuthor(?User $author): static
-    {
-        $this->author = $author;
 
         return $this;
     }
