@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
-use App\Repository\SitemapLinkRepository;
+use App\Repository\SiteMapLinkRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: SitemapLinkRepository::class)]
-class SitemapLink
+#[ORM\Entity(repositoryClass: SiteMapLinkRepository::class)]
+class SiteMapLink
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -26,7 +26,7 @@ class SitemapLink
     private ?\DateTimeImmutable $created_at = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $update_at = null;
+    private ?\DateTimeImmutable $upadated_at = null;
 
     #[ORM\Column]
     private ?bool $is_active = null;
@@ -84,14 +84,14 @@ class SitemapLink
         return $this;
     }
 
-    public function getUpdateAt(): ?\DateTimeImmutable
+    public function getUpadatedAt(): ?\DateTimeImmutable
     {
-        return $this->update_at;
+        return $this->upadated_at;
     }
 
-    public function setUpdateAt(\DateTimeImmutable $update_at): static
+    public function setUpadatedAt(\DateTimeImmutable $upadated_at): static
     {
-        $this->update_at = $update_at;
+        $this->upadated_at = $upadated_at;
 
         return $this;
     }
