@@ -5,11 +5,9 @@
 {% block body %}
 <h1>Les articles</h1>
 
-{% for article in articles %}
+{% for item in articles %}
     <h3>{{ item.title }}</h3>
-    <a href="{{ path('article', { 'slug': item.slug}) }}">Voir l'article</a>
-    <hr>
+    <a href="{{ path('article', {'slug': item.slug}) }}">Voir l'article</a>
 {% endfor %}
 
-{{ knp_pagination_render(articles) }}
 {% endblock %}
