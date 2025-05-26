@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Form\ArticleForm;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -54,10 +55,14 @@ final class ArticleController extends AbstractController
 
     // Route "/article/{slug}/edit" menent à la page de modification d'un article
     #[Route('/{slug}/edit', name: 'article_edit', methods: ['GET', 'POST'])]
-    public function edit(): Response
-    {
+    public function edit(string $slug, Request $request): Response {
+    
+        
+        $article = $this->ar->findOneBySlug($slug); // Récupération de l'article à modifier
+        $form = $this->createForm(ArticleForm::class, $article); // Mise en place du formulaire
+
         return $this->render('article/edit.html.twig', [
-            //'articles' => $article
+            'articles' => $form // Envoi du formulaire à la vue
         ]);
     }
 
