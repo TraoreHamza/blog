@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
 use App\Form\ArticleForm;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,48 +15,65 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 #[Route('/article')]
 final class ArticleController extends AbstractController
 {
-    /**
-     * Le constructeur permet de déclarer les dépendances une fois 
-     * et d'éviter la non-application du concept DRY (Don't Repeat Yourself)
-     */
     public function __construct(
-        private ArticleRepository $ar, // Repository de l'entité Article
-        private EntityManagerInterface $em // Gestionnaire d'entité avec Doctrine
-    ){}
-    
-    // Route "/article" menent à la liste des articles
+        private ArticleRepository $ar,
+        private EntityManagerInterface $em
+    ) {}
+
+    // Route "/articles" menant à la liste des articles
     #[Route('s', name: 'articles', methods: ['GET'])]
-    public function index(
-        PaginatorInterface $paginator, // Classe pour la fonctionnalité de pagination
-        Request $request // Classe epour recuperer les parametres de la requete HTTP
-    ): Response {
-        // Récupération de tous les articles
-        $all = $this->ar->findBy([
-            'is_published' => true, // On ne veut que les articles publiés
-            'is_archived' => false// On ne veut pas les articles archivés
-        ], ['id' => 'DESC'],);
+    public function index(PaginatorInterface $paginator, Request $request): Response
+    {
+        $query = $this->ar->findBy(['is_published' => true, 'is_archived' => false], ['id' => 'DESC']);
         $pagination = $paginator->paginate(
-            $all,
+            $query,
             $request->query->getInt('page', 1),
             12
         );
-
-        // parameters to template
         return $this->render('article/index.html.twig', [
-            'controller_name' => 'INDEX',
             'articles' => $pagination
         ]);
     }
 
-    // Route "/article/{slug}" menent à la page d'un article
-    #[Route('/{slug}', name: 'article', methods: ['GET'])]
-    public function view(string $slug): Response {
-        return $this->render('article/view.html.twig', [
-            'article' => $this->ar->findOneBySlug($slug),
+    // Route "/article/new" pour créer un article
+    #[Route('/new', name: 'article_new', methods: ['GET', 'POST'])]
+    public function new(Request $request): Response
+    {
+        $article = new Article(); // Nouvel objet article vide
+        $form = $this->createForm(ArticleForm::class, $article); // Mise en place du formulaire
+        $form->handleRequest($request); // Traitement de la requête
+
+        // Traitement du formulaire
+        if ($form->isSubmitted() && $form->isValid()) {
+            $article->setAuthor($this->getUser()); // Récupération de l'utilisateur
+            $this->em->persist($article); // Enregistrement de l'article (query SQL)
+            $this->em->flush($article); // Exécution de l'enregistrement en BDD
+            $this->addFlash('success', "L'article a été créé"); // Message Flash Success
+            return $this->redirectToRoute('articles'); // Redirection vers l'article
+        }
+
+        return $this->render('article/new.html.twig', [
+            'articleForm' => $form, // Envoi du formulaire à la vue
         ]);
     }
 
-  // Route "/article/{slug}/edit" menant à la modification d'un article
+    // Route "/article/{slug}" menant à un article
+    #[Route('/{slug}', name: 'article', methods: ['GET'])]
+    public function view(string $slug): Response
+    {
+        $article = $this->ar->findOneBySlug($slug); // Récupération de l'article
+
+        if (!$article) {
+            $this->addFlash('error', "L'article n'existe pas");
+            return $this->redirectToRoute('articles');
+        }
+
+        return $this->render('article/view.html.twig', [
+            'article' => $article
+        ]);
+    }
+
+    // Route "/article/{slug}/edit" menant à la modification d'un article
     #[Route('/{slug}/edit', name: 'article_edit', methods: ['GET', 'POST'])]
     public function edit(string $slug, Request $request): Response
     {
@@ -88,7 +106,8 @@ final class ArticleController extends AbstractController
             'article' => $article
         ]);
     }
-       // Route "/article/{slug}/publish" pour publier un article
+
+    // Route "/article/{slug}/publish" pour publier un article
     #[Route('/{slug}/publish', name: 'article_publish', methods: ['GET'])]
     public function publish(string $slug): Response
     {
@@ -107,24 +126,24 @@ final class ArticleController extends AbstractController
 
         $this->em->persist($article); // Enregistrement de l'article (query SQL)
         $this->em->flush($article); // Exécution de l'enregistrement en BDD
-        
+
         // On créer un message flash
         $this->addFlash('success', $article->isPublished() ? "Article publié" : "Mis en brouillon");
-        
+
         // On redirige l'utilisateur vers l'article
         return $this->redirectToRoute('article', ['slug' => $slug]);
     }
 
     // Route "/article/{slug}/archive" pour publier un article
     #[Route('/{slug}/archive', name: 'article_archive', methods: ['GET'])]
-    public function archive(string $slug,): Response
+    public function archive(string $slug): Response
     {
 
         // Récupérer l'article
         // Vérifier que l'article existe
         // Vérifier que l'article est archivé
-            // OUI : Le désarchiver
-            // NON : L'archiver
+        // OUI : Le désarchiver
+        // NON : L'archiver
         // Enregistrer les modifications
         // Rediriger vers l'article
 
@@ -167,9 +186,9 @@ final class ArticleController extends AbstractController
         return $this->redirectToRoute('article', ['slug' => $slug]);
     }
 
-    // Route "article/{slug}/delete" pour supprimer un article
-    #[Route('/{slug}/delete', name: 'article_delete', methods: ['GET'])]
-    public function delete(string $slug,): Response
+    // Route "/article/{slug}/status" pour publier ou archiver un article
+    #[Route('/{slug}/delete', name: 'article_delete', methods: ['POST'])]
+    public function delete(string $slug): Response
     {
         $article = $this->ar->findOneBySlug($slug); // Récupération de l'article
 
@@ -177,16 +196,11 @@ final class ArticleController extends AbstractController
             $this->addFlash('error', "L'article n'existe pas");
             return $this->redirectToRoute('articles');
         }
-        // l'endroit où l'on supprime un article est dans le repository
 
         $this->em->remove($article); // Suppression de l'article (query SQL)
-        $this->em->flush($article); // Exécution de la suppression en BDD
+        $this->em->flush($article); // Exécution de l'enregistrement en BDD
 
-        // On créer un message flash
         $this->addFlash('success', "Article supprimé avec succès");
-
-        // On redirige l'utilisateur vers la liste des articles
         return $this->redirectToRoute('articles');
     }
 }
-
