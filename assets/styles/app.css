@@ -21,5 +21,5 @@ input[type="text"], input[type="email"], input[type="password"] {
 }
 
 button[type="submit"] {
-    @apply bg-violet-400 text-white rounded-full px-3 py-2 hover:bg-violet-400 transition duration-300 ease-in-out;
+    @apply bg-violet-500 text-white rounded-full px-3 py-2 hover:bg-violet-400 transition duration-300 ease-in-out;
 }
