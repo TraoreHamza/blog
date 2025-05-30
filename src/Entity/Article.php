@@ -2,15 +2,15 @@
 
 namespace App\Entity;
 
+use App\Repository\ArticleRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use App\Repository\ArticleRepository;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
-#[ORM\HasLifecycleCallbacks] // Gestion auto des evenements par Doctrine
+#[ORM\HasLifecycleCallbacks] // Gestion auto des évènements par Doctrine
 class Article
 {
     #[ORM\Id]
@@ -18,27 +18,26 @@ class Article
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Assert\NotBlank(message: 'Le titre est obligatire')]
-    #[Assert\Length(min: 2, max: 100, message : 'Le titre doit faire entre {{ min }} et {{ max }} caractères')]
-    #[Assert\Length(max: 255, message : '{{ max }} caractères maximum')]
+    #[ORM\Column(length: 100)]
+    #[Assert\Length(min: 2, max: 100, minMessage: 'Le titre contient au minimum {{ min }} caractères et au maximum {{ max }} caractères')]
     private ?string $title = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\Length(max: 255, message : '{{ max }} caractères maximum')]
-    #[Assert\Regex(pattern: '^[a-z0-9-]+$')]
+    #[Assert\Length(max: 255, maxMessage: '{{ max }} caractères maximum')]
+    #[Assert\Regex(pattern: '/^[a-z0-9-]+$/')]
     private ?string $slug = null;
-
+    
     #[ORM\Column(length: 255)]
-    #[Assert\Length(max: 255, message : ' {{ max }} caractères maximum')]
-    #[Assert\Regex(pattern: '\.(jpg|jpeg|png|webp)$')]
-    private ?string $image = 'default.jpg';
+    #[Assert\Length(max: 255, maxMessage: '{{ max }} caractères maximum')]
+    #[Assert\Regex(pattern: '/\.(jpg|jpeg|png|webp)$/')]
+    private ?string $image = 'default.png';
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Assert\Length(max: 255, message : ' {{ max }} caractères maximum')]
+    #[Assert\Length(max: 255, maxMessage: '{{ max }} caractères maximum')]
     private ?string $keywords = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Assert\Length(max: 255, message : ' {{ max }} caractères maximum')]
+    #[Assert\Length(max: 255, maxMessage: '{{ max }} caractères maximum')]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -62,24 +61,25 @@ class Article
     #[ORM\ManyToMany(targetEntity: Block::class, mappedBy: 'articles')]
     private Collection $blocks;
 
+    #[ORM\ManyToOne(inversedBy: 'articles')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $author = null;
+
     /**
      * @var Collection<int, Comment>
      */
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'article', orphanRemoval: true)]
     private Collection $comments;
 
-    #[ORM\ManyToOne(inversedBy: 'articles')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $author = null;
-
     public function __construct()
     {
         $this->blocks = new ArrayCollection();
         $this->comments = new ArrayCollection();
     }
+
     /**
-     * Les événements de la vie cycle de l'entité
-     * La mise à jour de la date de création et de la date de modification de l'entité
+     * Les évènements du cycle de vie de l'entité
+     * La mise à jour des dates de création et de modification de l'entité
      */
     #[ORM\PrePersist] // Premier enregistrement d'un objet de l'entité
     public function setCreatedAtValue(): void
@@ -158,7 +158,7 @@ class Article
 
         return $this;
     }
-    
+
     public function getContent(): ?string
     {
         return $this->content;
@@ -170,7 +170,6 @@ class Article
 
         return $this;
     }
-
 
     public function isPublished(): ?bool
     {
@@ -247,6 +246,18 @@ class Article
         return $this;
     }
 
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): static
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Comment>
      */
@@ -273,18 +284,6 @@ class Article
                 $comment->setArticle(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getAuthor(): ?User
-    {
-        return $this->author;
-    }
-
-    public function setAuthor(?User $author): static
-    {
-        $this->author = $author;
 
         return $this;
     }

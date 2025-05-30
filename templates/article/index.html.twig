@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Les articles{% endblock %}
+
+{% block body %}
+<h1>Les articles</h1>
+
+{% for item in articles %}
+    <h3>{{ item.title }}</h3>
+    <a href="{{ path('article', {'slug': item.slug}) }}">Voir l'article</a>
+{% endfor %}
+
+{% endblock %}

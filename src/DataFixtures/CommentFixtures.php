@@ -1,124 +1,62 @@
 <?php
 
-namespace App\Entity;
+namespace App\DataFixtures;
 
-use App\Repository\CommentRepository;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
+use Faker\Factory;
+use App\Entity\User;
+use App\Entity\Article;
+use App\Entity\Comment;
+use App\DataFixtures\UserFixtures;
+use App\DataFixtures\ArticleFixtures;
+use Doctrine\Persistence\ObjectManager;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 
-#[ORM\Entity(repositoryClass: CommentRepository::class)]
-#[ORM\HasLifecycleCallbacks] // Gestion auto des évènements par Doctrine
-class Comment
+class CommentFixtures extends Fixture implements DependentFixtureInterface
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
-    private ?int $id = null;
-
-    #[ORM\ManyToOne(inversedBy: 'comments')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?User $author = null;
-
-    #[ORM\Column(type: Types::TEXT)]
-    private ?string $content = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $created_at = null;
-
-    #[ORM\Column]
-    private ?bool $is_moderated = null;
-
-    #[ORM\Column]
-    private ?bool $is_published = null;
-
-    #[ORM\ManyToOne(inversedBy: 'comments')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Article $article = null;
-
-    /**
-     * Les évènements du cycle de vie de l'entité
-     * La mise à jour des dates de création de l'entité
-     */
-    #[ORM\PrePersist] // Premier enregistrement d'un objet de l'entité
-    public function setCreatedAtValue(): void
+    public function load(ObjectManager $manager): void
     {
-        $this->created_at = new \DateTimeImmutable();
+        $faker = Factory::create('fr_FR');
+
+        // Récupération des utilisateurs nouvellement créés
+        $users = [];
+        for ($i = 0; $i < 100; $i++) {
+            $users[] = $this->getReference('USER_' . $i, User::class);
+        }
+
+        // Récupération des articles nouvellement créés
+        $articles = [];
+        for ($i = 0; $i < 100; $i++) {
+            $articles[] = $this->getReference('ARTICLE_' . $i, Article::class);
+        }
+
+        // TODO: Régidiger la création de commentaires pour les articles
+
+        foreach ($articles as $item) {
+            $count = $faker->numberBetween(1, 5); // Choisir en 1 et 2
+
+            for ($i = 0; $i < $count; $i++) { // Pour le nombre choisi
+                $comment = new Comment();
+                $comment
+                    ->setAuthor($faker->randomElement($users))
+                    ->setContent($faker->text())
+                    ->setIsModerated($faker->boolean(90))
+                    ->setIsPublished($faker->boolean(90))
+                    ->setArticle($item)
+                ;
+
+                $manager->persist($comment);
+            }
+        }
+
+        $manager->flush();
     }
 
-    public function getId(): ?int
+    public function getDependencies(): array
     {
-        return $this->id;
-    }
-
-    public function getAuthor(): ?User
-    {
-        return $this->author;
-    }
-
-    public function setAuthor(?User $author): static
-    {
-        $this->author = $author;
-
-        return $this;
-    }
-
-    public function getContent(): ?string
-    {
-        return $this->content;
-    }
-
-    public function setContent(string $content): static
-    {
-        $this->content = $content;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->created_at;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $created_at): static
-    {
-        $this->created_at = $created_at;
-
-        return $this;
-    }
-
-    public function isModerated(): ?bool
-    {
-        return $this->is_moderated;
-    }
-
-    public function setIsModerated(bool $is_moderated): static
-    {
-        $this->is_moderated = $is_moderated;
-
-        return $this;
-    }
-
-    public function isPublished(): ?bool
-    {
-        return $this->is_published;
-    }
-
-    public function setIsPublished(bool $is_published): static
-    {
-        $this->is_published = $is_published;
-
-        return $this;
-    }
-
-    public function getArticle(): ?Article
-    {
-        return $this->article;
-    }
-
-    public function setArticle(?Article $article): static
-    {
-        $this->article = $article;
-
-        return $this;
+        return [
+            UserFixtures::class,
+            ArticleFixtures::class, 
+        ];
     }
 }
