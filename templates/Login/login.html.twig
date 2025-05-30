@@ -13,7 +13,7 @@
 
         <form method="post" class="w-[320px] border border-slate-100 rounded-lg shadow-sm p-4 bg-white">
             {% if error %}
-                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageDatay, 'security') }}</div>
             {% endif %}
 
             {% if app.user %}
