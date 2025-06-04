@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Form\ArticleForm;
 use App\Repository\ArticleRepository;
+use App\Service\UploadService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,7 +38,7 @@ final class ArticleController extends AbstractController
 
     // Route "/article/new" pour créer un article
     #[Route('/new', name: 'article_new', methods: ['GET', 'POST'])]
-    public function new(Request $request): Response
+    public function new(Request $request, UploadService $us): Response
     {
         $article = new Article(); // Nouvel objet article vide
         $form = $this->createForm(ArticleForm::class, $article); // Mise en place du formulaire
@@ -46,6 +47,11 @@ final class ArticleController extends AbstractController
         // Traitement du formulaire
         if ($form->isSubmitted() && $form->isValid()) {
             $article->setAuthor($this->getUser()); // Récupération de l'utilisateur
+            
+            if ($image = $form->get('image')->getData()) {
+                $article->setImage($us->upload($image, 'image'));
+            }
+
             $this->em->persist($article); // Enregistrement de l'article (query SQL)
             $this->em->flush($article); // Exécution de l'enregistrement en BDD
             $this->addFlash('success', "L'article a été créé"); // Message Flash Success
@@ -66,6 +72,13 @@ final class ArticleController extends AbstractController
         if (!$article) {
             $this->addFlash('error', "L'article n'existe pas");
             return $this->redirectToRoute('articles');
+        }
+
+        if (!$article->isPublished()) {
+            if ($article->getAuthor() !== $this->getUser()) {
+                $this->addFlash('error', "L'article n'est pas accessible pour le moment."); 
+                return $this->redirectToRoute('articles');
+            }
         }
 
         return $this->render('article/view.html.twig', [
@@ -154,11 +167,6 @@ final class ArticleController extends AbstractController
     public function status(string $slug, Request $request): Response
     {
         $article = $this->ar->findOneBySlug($slug); // Récupération de l'article
-
-        if (!$article) { // Ce sera ignorer si l'article existe
-            $this->addFlash('error', "L'article n'existe pas");
-            return $this->redirectToRoute('articles');
-        }
 
         if (!$article) { // Ce sera ignorer si l'article existe
             $this->addFlash('error', "L'article n'existe pas");
