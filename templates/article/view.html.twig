@@ -3,17 +3,132 @@
 {% block title %}{{ article.title }}{% endblock %}
 
 {% block body %}
-<h1>{{ article.title }} ({{ article.isPublished ? 'Publié' : 'Brouillon' }})</h1>
 
-{{ dump(article) }}
+    {% if article.isPublished == false %}
+        <p class="text-sm text-center text-white bg-violet-600 mt-10 border p-4 rounded-md">
+            Cette article n'est pas encore publié et n'est visible que par l'auteur.
+        </p>
+    {% endif %}
 
-<a href="{{ path('articles')}}">Retour aux articles</a>
-<a href="{{ path('article_edit', {'slug': article.slug}) }}">Modifier</a>
-<a href="{{ path('article_status', { 'slug': article.slug }) }}?s=publish">{{ article.isPublished ? 'Brouillon' : 'Publier'  }}</a>
-<a href="{{ path('article_status', { 'slug': article.slug }) }}?s=archive">{{ article.isArchived ? 'Désarchiver' : 'Archiver'  }}</a>
-<form action="{{ path('article_delete' , {'slug': article.title}) }}" method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token('article_delete') }}">
-    <button type="submit">Supprimer</button>
-</form>
+	<header class="hero rounded-md min-h-72 my-10" style="background-image: url({{ article.imagePath }});">
+		<div class="hero-overlay rounded-md"></div>
+		<div class="hero-content text-slate-50 text-center rounded-md">
+			<div>
+				<h1 class="mb-5 text-5xl text-white">
+                    {{ article.title }}
+                </h1>
+				<p class="mb-5 text-sm">
+					{% if article.isPublished %}
+                        Publié il y a {{ article.createdAt|time_diff }} par {{ article.author.username }}
+                    {% else %}
+                        Brouillon créé il y a {{ article.createdAt|time_diff }}
+                    {% endif %}
+				</p>
+			</div>
+		</div>
+	</header>
+
+    {% if article.author == app.user %}
+        <p class="text-sm text-center text-slate-600 mt-10">
+            Cette encart n'est visible que par vous car vous êtes l'auteur de l'article.
+        </p>
+        <div class="border rounded-md p-4 mb-6 flex justify-center bg-slate-50">
+            {# Actions #}
+            <section class="flex items-center gap-4">
+                {# Modificiation #}
+                <a href="{{ path('article_edit', {'slug': article.slug}) }}" class="flex items-center gap-2">
+                    {{ ux_icon('lucide:file-pen', { class: 'w-5 h-5' }) }}
+                    Modifier
+                </a>
+
+                {# Publication #}
+                <a href="{{ path('article_status', { 'slug': article.slug }) }}?s=publish" class="flex items-center gap-2">
+                    {% if article.isPublished %}
+                        {{ ux_icon('lucide:file-down', { class: 'w-5 h-5 text-red-500' }) }}
+                        Mettre en brouillon
+                    {% else %}
+                        {{ ux_icon('lucide:file-check', { class: 'w-5 h-5 text-green-500' }) }}
+                        Publier
+                    {% endif %}
+                </a>
+
+                {# Archive #}
+                <a href="{{ path('article_status', { 'slug': article.slug }) }}?s=archive" class="flex items-center gap-2">
+                    {% if article.isArchived %}
+                        {{ ux_icon('lucide:file-lock', { class: 'w-5 h-5 text-red-500' }) }}
+                        Mettre en archive
+                    {% else %}
+                        {{ ux_icon('lucide:file-volume-2', { class: 'w-5 h-5' }) }}
+                        Archiver
+                    {% endif %}
+                </a>
+
+                {# Suppression #}
+                <form action="{{ path('article_delete' , {'slug': article.title}) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token('article_delete') }}">
+                    <button class="flex items-center gap-2">
+                        {{ ux_icon('lucide:file-x', { class: 'w-5 h-5' }) }}  
+                        Supprimer      
+                    </button>
+                </form>
+            </section>
+        </div>
+    {% endif %}
+
+    <section class="my-10 bg-white rounded-md p-4 border">
+        {{ article.content|raw }}
+    </section>
+
+    <section id="comments">
+        <h4 class="pb-4 mb-4 w-fit border-b-2 border-violet-600 hover:border-violet-400">
+            Les commentaires <span class="bg-violet-600 rounded-full px-3 py-1 text-white">#</span>
+        </h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-6 col-span-1">
+                {% for item in article.comments %}
+                    {% if item.isModerated %}
+                        
+                    <div class="mb-0">
+                        <div class="bg-neutral-200 border rounded-lg p-4">
+                            {{ item.content }}
+                        </div>
+                        <p class="text-sm pt-1 mb-6 flex items-center gap-2">
+                            <twig:ux:icon name="lucide:user-circle" class="w-5 h-5"/>
+                            {{ item.author.username }}, publié il y a {{ item.createdAt|time_diff }}
+                        </p>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <form action="{{ path('comment_new', { article: article.id }) }}" method="post" class="col-span-1 bg-neutral-100 p-4 rounded-md border h-fit">
+                <h5 class="">Participez ou ouvrez la conversation en rédigeant un commentaire</h5>
+
+                <div class="border p-4 text-sm rounded-lg bg-slate-50 my-4">
+                    {% if app.user %}
+                        <p>Vous êtes connecté en tant que {{ app.user.username }}</p>
+                    {% else %}
+                        <p>
+                            Vous devez vous connecter pour pouvoir écrire un commentaire. <a href="{{ path('app_login') }}">Se connecter</a>.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token('article_comment') }}">                
+                <textarea name="content" class="w-full rounded-lg p-4 border border-violet-600 hover:border-violet-400 focus:border-violet-400 mb-4"></textarea>
+
+                {% if app.user %}
+                    <button type="submit" class="bg-violet-600 rounded-lg p-4 text-white hover:bg-violet-400">Envoyer</button>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="bg-violet-600 rounded-lg p-4 text-white hover:bg-violet-400">Se connecter</a>
+                {% endif %}
+            </form>
+        </div>
+    </section>
+
+    <footer class="my-4 flex items-center justify-center gap-2 hover:text-violet-950 transition duration-300 ease-in-out">
+        <twig:ux:icon name="lucide:arrow-left" class="w-5 h-5"/>
+        <a href="{{ path('articles')}}">Retour aux articles</a>
+    </footer>
 
 {% endblock %}
