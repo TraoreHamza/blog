@@ -1,12 +1,59 @@
-% extends 'base.html.twig' %}
-
-{% block title %}{{ article.title }}{% endblock %}
-
-{% block body %}
-<h1>Modification de {{ article.title }}</h1>
-
-{{ form(articleForm) }}
-
-<a href="{{ path('article', {'slug': article.slug }) }}">Retour à l'article</a>
-
-{% endblock %}
+<nav class="navbar bg-base-100 border-b">
+	<div class="navbar-start">
+		<div class="dropdown">
+			<div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+				<twig:ux:icon name="lucide:menu" class="h-6 w-6"/>
+			</div>
+			<ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
+				<li>
+					<a>Homepage</a>
+				</li>
+				<li>
+					<a>Portfolio</a>
+				</li>
+				<li>
+					<a>About</a>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="navbar-center">
+		<a href="/" class="flex items-center gap-2 cursor-pointer">
+            <twig:ux:icon name="lucide:layers" class="h-6 w-6"/>
+            Road to Symfony
+        </a>
+	</div>
+	<div class="navbar-end">
+		<a href="{{ path('search' ) }}" class="btn btn-ghost btn-circle">
+			<twig:ux:icon name="lucide:search" class="h-6 w-6"/>
+		</a>
+        <div class="dropdown">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
+                <twig:ux:icon name="lucide:user-circle" class="h-6 w-6"/>
+            </div>
+            <ul tabindex="0" class="menu dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 -right-0 p-2 shadow">
+                {% if app.user %}
+                <li>
+                    <a href="{{ path('article_new') }}">Rédiger un article</a>
+                </li>
+                <li>
+                    <a href="#">Mes favoris</a>
+                </li>
+                <li>
+                    <a href="#">Mon profil</a>
+                </li>
+                <li>
+                    <a href="{{ path('app_logout') }}">Déconnexion</a>
+                </li>
+                {% else %}
+                <li>
+                    <a href="{{ path('app_login') }}">Connexion</a>
+                </li>
+                <li>
+                    <a href="#">Inscription</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+	</div>
+</nav>
