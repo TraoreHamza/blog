@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\SitemapLink;
+use App\Entity\SiteMapLink;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -41,3 +41,9 @@ class SiteMapLinkRepository extends ServiceEntityRepository
     //        ;
     //    }
 }
+
+// Traitement du slug 
+// if ($slug = $form->get('slug')->getData() !== $article->getSlug()) {
+//     $slugify = new slugify;
+//     $article =setSlug($slugify->slugify($slug));
+// }
