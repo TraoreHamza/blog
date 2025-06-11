@@ -134,7 +134,7 @@ class Article
 
     public function getImagePath(): ?string
     {
-        $path = '/medias/uploads/images/';
+        $path = '/medias/images/';
         if ($this->image !== 'default.png') {
             return $path . $this->image;
         }
