@@ -7,17 +7,17 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<SitemapLink>
+ * @extends ServiceEntityRepository<SiteMapLink>
  */
 class SiteMapLinkRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, SitemapLink::class);
+        parent::__construct($registry, SiteMapLink::class);
     }
 
     //    /**
-    //     * @return SitemapLink[] Returns an array of SitemapLink objects
+    //     * @return SiteMapLink[] Returns an array of SiteMapLink objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class SiteMapLinkRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?SitemapLink
+    //    public function findOneBySomeField($value): ?SiteMapLink
     //    {
     //        return $this->createQueryBuilder('s')
     //            ->andWhere('s.exampleField = :val')
@@ -41,9 +41,3 @@ class SiteMapLinkRepository extends ServiceEntityRepository
     //        ;
     //    }
 }
-
-// Traitement du slug 
-// if ($slug = $form->get('slug')->getData() !== $article->getSlug()) {
-//     $slugify = new slugify;
-//     $article =setSlug($slugify->slugify($slug));
-// }
