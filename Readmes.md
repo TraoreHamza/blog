@@ -1,7 +1,6 @@
 # DESCRIPTION
 
-
-Mon application de blog dédiée au manga et à l’anime s’adresse avant tout aux passionnés de culture japonaise, qu’ils soient lecteurs assidus de mangas, amateurs d’animes, ou simples curieux souhaitant découvrir cet univers foisonnant. Elle vise aussi bien les fans expérimentés, désireux de partager leurs avis et découvertes, que les néophytes à la recherche de recommandations fiables et d’informations claires sur les œuvres incontournables du moment. 
+Mon application de blog dédiée au manga et à l’anime s’adresse avant tout aux passionnés de culture japonaise, qu’ils soient lecteurs assidus de mangas, amateurs d’animes, ou simples curieux souhaitant découvrir cet univers foisonnant. Elle vise aussi bien les fans expérimentés, désireux de partager leurs avis et découvertes, que les néophytes à la recherche de recommandations fiables et d’informations claires sur les œuvres incontournables du moment.
 
 Cette plateforme répond à plusieurs problématiques majeures rencontrées par la communauté. D’une part, elle centralise l’information : il n’est plus nécessaire de naviguer entre différents sites pour trouver des critiques, des classements, des résumés ou des actualités sur les dernières sorties. D’autre part, elle facilite l’interaction et l’échange entre membres grâce à des systèmes de commentaires, de notations et de recommandations personnalisées, permettant à chacun de partager ses coups de cœur ou de débattre autour de ses séries préférées. Enfin, elle aide les utilisateurs à organiser leur parcours de lecture ou de visionnage grâce à des outils de suivi (progression, listes d’envies, notifications sur les nouveautés), évitant ainsi d’oublier où ils en sont dans leurs séries ou de passer à côté de titres majeurs.
 
@@ -26,3 +25,74 @@ Mon intérêt pour ce projet est avant tout né de ma passion pour la culture ma
 * En tant qu’utilisateur, je veux pouvoir filtrer les mangas et animes par genre, popularité ou date de sortie afin de trouver rapidement ce qui m’intéresse.
 * En tant que membre, je veux pouvoir personnaliser mon profil avec un avatar et une biographie afin de mieux me présenter à la communauté.
 * En tant qu’utilisateur, je veux être notifié lorsqu’un nouvel article ou une nouvelle critique est publiée sur une série que je suis afin de rester informé des dernières actualités.
+
+### Services
+
+## 📘 Models (Database/Class Diagram)
+
+```mermaid
+classDiagram
+  class Article {
+    -int id
+    -string title NN
+    -string slug NN
+    -string image NN
+    -string keywords 
+    -string description
+    -text content
+    -bool is_published NN
+    -bool is_archived NN
+    -DateTime created_at NN
+    -DateTime updated_at NN
+    -User author NN
+    -Comment comments
+  }
+
+  class Manga/Anime {
+    -int id
+    -string title NN
+    -string description NN
+    -string synopsy NN
+  }
+
+  class Comment {
+    -int id
+    -text content NN
+    -DateTime created_at NN
+    -bool is_moderated NN
+    -bool is_published NN
+    -User author NN
+    -Article article
+  }
+
+  class User {
+    -int id
+    -string email NN
+    -string password NN
+    -string roles
+    -DateTime created_at NN
+    -DateTime updated_at NN
+    -int warningCount NN
+    -bool is_banned NN
+    -bool is_active NN
+  }
+
+  class Tags {
+    -int id
+    -string name NN
+    -string content 
+    -DateTime created_at NN
+    -DateTime updated_at NN
+  }
+
+  class Catégories {
+    -int id
+    -string name
+    -string description
+  }
+
+  Article "1" -- "0..*" Comment : contains
+  User "1" -- "0..*" Article : (admin) writes
+  User "1" -- "0..*" Comment : (logged-in) writes
+  Block "*" -- "*" Article : displayed_on
+```

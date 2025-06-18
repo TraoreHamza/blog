@@ -25,7 +25,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180)]
     private ?string $email = null;
 
-    #[ORM\Column(length: 180, nullable: true)]
+    #[ORM\Column(length: 180)]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
@@ -75,7 +75,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->ref = strtolower(uniqid('usr-')); 
+        $this->ref = strtolower(uniqid('usr-'));
+        $this->username = $this->email; 
         $this->articles = new ArrayCollection();
         $this->comments = new ArrayCollection();
     }
